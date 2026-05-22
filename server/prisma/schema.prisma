@@ -8,8 +8,19 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id            String             @id @default(cuid())
+  email         String             @unique
+  passwordHash  String
+  createdAt     DateTime           @default(now())
+  medications   Medication[]
+  subscriptions PushSubscription[]
+}
+
 model Medication {
   id                      String          @id @default(cuid())
+  userId                  String
+  user                    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   name                    String
   dosage                  String          @default("")
   times                   String[]
@@ -19,11 +30,13 @@ model Medication {
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @updatedAt
   logs                    MedicationLog[]
+
+  @@index([userId])
 }
 
 model MedicationLog {
   id            String     @id @default(cuid())
-  medicationId String
+  medicationId  String
   scheduledAt   DateTime
   takenAt       DateTime?
   remindersSent Int        @default(0)
@@ -35,8 +48,12 @@ model MedicationLog {
 
 model PushSubscription {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   endpoint  String   @unique
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }

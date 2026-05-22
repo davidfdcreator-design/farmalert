@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -14,10 +15,10 @@ export default function Login() {
     setBusy(true);
     setError('');
     try {
-      await login(password);
+      await login(email.trim().toLowerCase(), password);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.message === 'wrong password' ? 'Password errata' : 'Errore di accesso');
+      setError(err.message === 'invalid credentials' ? 'Email o password errate' : 'Errore di accesso');
     } finally {
       setBusy(false);
     }
@@ -30,21 +31,33 @@ export default function Login() {
           💊
         </div>
         <h1 className="text-2xl font-bold">FarmaAlert</h1>
-        <p className="mt-2 text-slate-500">Inserisci la password per accedere</p>
+        <p className="mt-2 text-slate-500">Accedi al tuo account</p>
       </div>
       <form onSubmit={submit} className="space-y-4">
         <input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          className="input"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoFocus
+        />
+        <input
           type="password"
-          inputMode="text"
           autoComplete="current-password"
           className="input"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          autoFocus
         />
         {error && <p className="text-center text-sm text-red-600">{error}</p>}
-        <button type="submit" className="btn-primary w-full" disabled={busy || !password}>
+        <button
+          type="submit"
+          className="btn-primary w-full"
+          disabled={busy || !email || !password}
+        >
           {busy ? 'Accesso...' : 'Entra'}
         </button>
       </form>

@@ -37,7 +37,7 @@ function validateBody(body) {
 
 router.get('/', async (req, res) => {
   const meds = await prisma.medication.findMany({
-    where: { active: true },
+    where: { userId: req.userId, active: true },
     orderBy: { createdAt: 'asc' },
   });
   res.json({ medications: meds });
@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
   const { errors, data } = validateBody(req.body);
   if (errors.length) return res.status(400).json({ errors });
 
-  const med = await prisma.medication.create({ data });
+  const med = await prisma.medication.create({ data: { ...data, userId: req.userId } });
   res.status(201).json({ medication: med });
 });
 
@@ -55,24 +55,26 @@ router.put('/:id', async (req, res) => {
   const { errors, data } = validateBody(req.body);
   if (errors.length) return res.status(400).json({ errors });
 
-  try {
-    const med = await prisma.medication.update({ where: { id: req.params.id }, data });
-    res.json({ medication: med });
-  } catch {
-    res.status(404).json({ error: 'not found' });
+  const existing = await prisma.medication.findUnique({ where: { id: req.params.id } });
+  if (!existing || existing.userId !== req.userId) {
+    return res.status(404).json({ error: 'not found' });
   }
+
+  const med = await prisma.medication.update({ where: { id: req.params.id }, data });
+  res.json({ medication: med });
 });
 
 router.delete('/:id', async (req, res) => {
-  try {
-    await prisma.medication.update({
-      where: { id: req.params.id },
-      data: { active: false },
-    });
-    res.json({ ok: true });
-  } catch {
-    res.status(404).json({ error: 'not found' });
+  const existing = await prisma.medication.findUnique({ where: { id: req.params.id } });
+  if (!existing || existing.userId !== req.userId) {
+    return res.status(404).json({ error: 'not found' });
   }
+
+  await prisma.medication.update({
+    where: { id: req.params.id },
+    data: { active: false },
+  });
+  res.json({ ok: true });
 });
 
 function romeNow() {
@@ -92,7 +94,7 @@ router.get('/today', async (req, res) => {
   dayEnd.setDate(dayEnd.getDate() + 1);
 
   const meds = await prisma.medication.findMany({
-    where: { active: true },
+    where: { userId: req.userId, active: true },
     include: {
       logs: {
         where: { scheduledAt: { gte: dayStart, lt: dayEnd } },
@@ -134,7 +136,9 @@ router.post('/take', async (req, res) => {
   }
 
   const med = await prisma.medication.findUnique({ where: { id: medicationId } });
-  if (!med) return res.status(404).json({ error: 'medication not found' });
+  if (!med || med.userId !== req.userId) {
+    return res.status(404).json({ error: 'medication not found' });
+  }
 
   const when = new Date(scheduledAt);
   const log = await prisma.medicationLog.upsert({

@@ -35,8 +35,8 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  login: (password) =>
-    request('/api/auth/login', { method: 'POST', body: JSON.stringify({ password }) }),
+  login: (email, password) =>
+    request('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
   listMedications: () => request('/api/medications'),
   createMedication: (data) =>

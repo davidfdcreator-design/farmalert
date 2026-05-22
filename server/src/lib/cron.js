@@ -35,7 +35,7 @@ async function sendInitialDoses(now) {
       data: { medicationId: med.id, scheduledAt },
     });
 
-    await push.sendToAll({
+    await push.sendToUser(med.userId, {
       title: 'FarmaAlert',
       body: `Ora di prendere ${med.name}${med.dosage ? ` (${med.dosage})` : ''}`,
     });
@@ -57,7 +57,7 @@ async function sendReminders(now) {
     const threshold = (log.remindersSent + 1) * med.reminderIntervalMinutes;
     if (minutesSince < threshold) continue;
 
-    await push.sendToAll({
+    await push.sendToUser(med.userId, {
       title: 'FarmaAlert — promemoria',
       body: `⚠️ ${med.name} non ancora confermato`,
     });

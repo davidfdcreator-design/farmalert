@@ -24,9 +24,9 @@ function publicKey() {
   return sanitize(process.env.VAPID_PUBLIC_KEY);
 }
 
-async function sendToAll(payload) {
+async function sendToUser(userId, payload) {
   if (!configure()) return { sent: 0, failed: 0 };
-  const subs = await prisma.pushSubscription.findMany();
+  const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   const body = JSON.stringify(payload);
 
   let sent = 0;
@@ -55,4 +55,4 @@ async function sendToAll(payload) {
   return { sent, failed };
 }
 
-module.exports = { configure, publicKey, sendToAll };
+module.exports = { configure, publicKey, sendToUser };

@@ -1,18 +1,29 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const prisma = require('../lib/prisma');
 
 const router = express.Router();
 
-router.post('/login', (req, res) => {
-  const { password } = req.body || {};
-  if (!password) return res.status(400).json({ error: 'password required' });
-
-  if (password !== process.env.APP_PASSWORD) {
-    return res.status(401).json({ error: 'wrong password' });
+router.post('/login', async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  if (!email || !password) {
+    return res.status(400).json({ error: 'email and password required' });
   }
 
-  const token = jwt.sign({ app: 'farmalert' }, process.env.JWT_SECRET, { expiresIn: '365d' });
-  res.json({ token });
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return res.status(401).json({ error: 'invalid credentials' });
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) return res.status(401).json({ error: 'invalid credentials' });
+
+  const token = jwt.sign(
+    { userId: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: '365d' },
+  );
+  res.json({ token, email: user.email });
 });
 
 router.get('/me', (req, res) => {
@@ -20,8 +31,8 @@ router.get('/me', (req, res) => {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'missing token' });
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ ok: true });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ ok: true, email: payload.email });
   } catch {
     res.status(401).json({ error: 'invalid token' });
   }

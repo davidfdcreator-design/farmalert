@@ -17,15 +17,15 @@ router.post('/subscribe', async (req, res) => {
 
   const sub = await prisma.pushSubscription.upsert({
     where: { endpoint },
-    update: { p256dh: keys.p256dh, auth: keys.auth },
-    create: { endpoint, p256dh: keys.p256dh, auth: keys.auth },
+    update: { p256dh: keys.p256dh, auth: keys.auth, userId: req.userId },
+    create: { endpoint, p256dh: keys.p256dh, auth: keys.auth, userId: req.userId },
   });
 
   res.json({ id: sub.id });
 });
 
 router.post('/test', async (req, res) => {
-  const result = await push.sendToAll({
+  const result = await push.sendToUser(req.userId, {
     title: 'FarmaAlert',
     body: 'Notifica di test ricevuta correttamente ✓',
   });
