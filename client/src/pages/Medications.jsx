@@ -5,8 +5,8 @@ const emptyForm = {
   name: '',
   dosage: '',
   times: ['08:00'],
-  reminderIntervalMinutes: 10,
-  reminderMaxCount: 3,
+  reminderIntervalMinutes: 1,
+  reminderMaxCount: 10,
 };
 
 export default function Medications() {

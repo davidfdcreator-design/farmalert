@@ -16,10 +16,10 @@ self.addEventListener('push', (event) => {
     body: data.body || '',
     icon: '/farmalert/icon-192.png',
     badge: '/farmalert/icon-192.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || 'farmalert',
+    vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500],
+    tag: data.tag || `farmalert-${Date.now()}`,
     renotify: true,
-    requireInteraction: false,
+    requireInteraction: true,
   };
 
   event.waitUntil(self.registration.showNotification(title, options));

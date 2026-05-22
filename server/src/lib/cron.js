@@ -38,6 +38,7 @@ async function sendInitialDoses(now) {
     await push.sendToUser(med.userId, {
       title: 'FarmaAlert',
       body: `Ora di prendere ${med.name}${med.dosage ? ` (${med.dosage})` : ''}`,
+      tag: `dose-${med.id}-${scheduledAt.getTime()}`,
     });
   }
 }
@@ -60,6 +61,7 @@ async function sendReminders(now) {
     await push.sendToUser(med.userId, {
       title: 'FarmaAlert — promemoria',
       body: `⚠️ ${med.name} non ancora confermato`,
+      tag: `dose-${med.id}-${log.scheduledAt.getTime()}`,
     });
 
     await prisma.medicationLog.update({
