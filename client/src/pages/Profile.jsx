@@ -35,6 +35,7 @@ export default function Profile() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub && perm === 'granted') {
+      try { await api.subscribe(sub.toJSON()); } catch {}
       setStatus('subscribed');
     } else if (perm === 'granted') {
       await subscribe();
