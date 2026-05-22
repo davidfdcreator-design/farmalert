@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -13,7 +13,7 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function Profile() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [status, setStatus] = useState('checking');
   const [message, setMessage] = useState('');
@@ -131,8 +131,18 @@ export default function Profile() {
         {message && <p className="mt-3 text-center text-sm text-slate-600">{message}</p>}
       </section>
 
+      {user?.isAdmin && (
+        <section className="card mb-4 p-4">
+          <h2 className="mb-3 font-semibold">Amministrazione</h2>
+          <Link to="/admin" className="btn-ghost block w-full border border-brand-200 text-center">
+            Gestisci utenti
+          </Link>
+        </section>
+      )}
+
       <section className="card p-4">
         <h2 className="mb-3 font-semibold">Account</h2>
+        {user?.email && <p className="mb-3 text-sm text-slate-500">{user.email}</p>}
         <button onClick={doLogout} className="btn-danger w-full">
           Esci
         </button>

@@ -6,7 +6,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const medicationsRoutes = require('./routes/medications');
 const notificationsRoutes = require('./routes/notifications');
-const { requireAuth } = require('./middleware/auth');
+const adminRoutes = require('./routes/admin');
+const { requireAuth, requireAdmin } = require('./middleware/auth');
 const cronJob = require('./lib/cron');
 const push = require('./lib/push');
 
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/medications', requireAuth, medicationsRoutes);
 app.use('/api/notifications', requireAuth, notificationsRoutes);
+app.use('/api/admin', requireAuth, requireAdmin, adminRoutes);
 
 app.use((err, req, res, next) => {
   console.error('[error]', err);

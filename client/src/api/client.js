@@ -61,6 +61,17 @@ export const api = {
     }),
   testNotification: () =>
     request('/api/notifications/test', { method: 'POST' }),
+
+  adminListUsers: () => request('/api/admin/users'),
+  adminCreateUser: (data) =>
+    request('/api/admin/users', { method: 'POST', body: JSON.stringify(data) }),
+  adminDeleteUser: (id) =>
+    request(`/api/admin/users/${id}`, { method: 'DELETE' }),
+  adminResetPassword: (id, password) =>
+    request(`/api/admin/users/${id}/password`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
 };
 
 export { getToken, setToken };

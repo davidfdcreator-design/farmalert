@@ -19,11 +19,11 @@ router.post('/login', async (req, res) => {
   if (!ok) return res.status(401).json({ error: 'invalid credentials' });
 
   const token = jwt.sign(
-    { userId: user.id, email: user.email },
+    { userId: user.id, email: user.email, isAdmin: user.isAdmin },
     process.env.JWT_SECRET,
     { expiresIn: '365d' },
   );
-  res.json({ token, email: user.email });
+  res.json({ token, email: user.email, isAdmin: user.isAdmin });
 });
 
 router.get('/me', (req, res) => {
@@ -32,7 +32,7 @@ router.get('/me', (req, res) => {
   if (!token) return res.status(401).json({ error: 'missing token' });
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ ok: true, email: payload.email });
+    res.json({ ok: true, email: payload.email, isAdmin: !!payload.isAdmin });
   } catch {
     res.status(401).json({ error: 'invalid token' });
   }

@@ -1,6 +1,6 @@
 /* Usage:
- *   EMAIL=foo@bar.com PASSWORD=secret node scripts/create-user.js
- * Idempotent: if user exists, updates the password.
+ *   EMAIL=foo@bar.com PASSWORD=secret [ADMIN=true] node scripts/create-user.js
+ * Idempotent: if user exists, updates password and admin flag.
  */
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
@@ -15,14 +15,15 @@ async function main() {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const isAdmin = String(process.env.ADMIN || '').toLowerCase() === 'true';
   const prisma = new PrismaClient();
   try {
     const user = await prisma.user.upsert({
       where: { email },
-      update: { passwordHash },
-      create: { email, passwordHash },
+      update: { passwordHash, isAdmin },
+      create: { email, passwordHash, isAdmin },
     });
-    console.log('OK', user.id, user.email);
+    console.log('OK', user.id, user.email, 'admin:', user.isAdmin);
   } finally {
     await prisma.$disconnect();
   }
